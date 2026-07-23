@@ -35,31 +35,34 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    // 👇 Task 2: Save lead into Supabase
-const { data: leadData, error: leadError } = await supabase
-  .from("leads")
-  .insert([
-    {
-      lead_name: name,
-      lead_email: email,
-      message: message,
-      status: "received",
-    },
-  ])
-  .select();
+    // 👇 Task 2: Save lead into Supabase if configured
+    let leadData = null;
+    if (supabase) {
+      const { data, error: leadError } = await supabase
+        .from("leads")
+        .insert([
+          {
+            lead_name: name,
+            lead_email: email,
+            message: message,
+            status: "received",
+          },
+        ])
+        .select();
 
-if (leadError) {
-  console.error("Failed to insert lead:", leadError);
-
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Failed to save lead.",
-      error: leadError.message,
-    },
-    { status: 500 }
-  );
-}
+      if (leadError) {
+        console.error("Failed to insert lead:", leadError);
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Failed to save lead.",
+            error: leadError.message,
+          },
+          { status: 500 }
+        );
+      }
+      leadData = data;
+    }
 
 console.log("Lead inserted:", leadData);
 // 👇 Task 1: Test Supabase connection
