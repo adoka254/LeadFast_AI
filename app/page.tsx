@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import LogoutButton from './components/LogoutButton';
 import { supabaseAnon as supabase, hasSupabaseConfig } from '@/lib/supabase';
 
 interface Contractor {
@@ -13,20 +12,19 @@ interface Contractor {
   plan: string | null;
 }
 
-export default function HomePage() {
+export default function ClientMarketplacePage() {
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [contractorsLoading, setContractorsLoading] = useState(true);
-  const [filter, setFilter] = useState('All');
-  const [trades, setTrades] = useState<string[]>([]);
+  const [selectedTrade, setSelectedTrade] = useState('All');
+  const [selectedContractor, setSelectedContractor] = useState('');
+  
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
-  const [qualifiedLeads, setQualifiedLeads] = useState<number | null>(null);
-  const [openJobs, setOpenJobs] = useState<number | null>(null);
-  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [aiReply, setAiReply] = useState('');
 
   useEffect(() => {
-    async function fetchContractors() {
+    async function fetchPublicContractors() {
       if (hasSupabaseConfig && supabase) {
         setContractorsLoading(true);
         try {
@@ -34,12 +32,11 @@ export default function HomePage() {
             .from('businesses')
             .select('id, business_name, trade, contact_email, contact_phone, plan')
             .order('created_at', { ascending: false });
+
           if (error) {
-            console.error('Error fetching businesses:', error);
+            console.error('Error fetching registered contractors:', error);
           } else if (data) {
             setContractors(data as Contractor[]);
-            const uniqueTrades = Array.from(new Set(data.map((b: any) => b.trade).filter(Boolean))) as string[];
-            setTrades(uniqueTrades);
           }
         } catch (err) {
           console.error('Fetch error:', err);
@@ -51,48 +48,50 @@ export default function HomePage() {
       }
     }
 
-    async function fetchMetrics() {
-      if (!hasSupabaseConfig || !supabase) { setMetricsLoading(false); return; }
-      try {
-        const { count: totalLeads } = await supabase
-          .from('leads').select('id', { count: 'exact', head: true });
-        const { count: openCount } = await supabase
-          .from('leads').select('id', { count: 'exact', head: true })
-          .in('status', ['New', 'Follow-up']);
-        setQualifiedLeads(totalLeads ?? 0);
-        setOpenJobs(openCount ?? 0);
-      } catch (err) {
-        console.error('Metrics fetch error:', err);
-      } finally {
-        setMetricsLoading(false);
-      }
-    }
-
-    fetchContractors();
-    fetchMetrics();
+    fetchPublicContractors();
   }, []);
 
+  const tradesList = useMemo(() => {
+    const unique = Array.from(new Set(contractors.map((c) => c.trade).filter(Boolean))) as string[];
+    return unique.length > 0 ? unique : ['Plumbing', 'HVAC', 'Electrical', 'Roofing', 'General Contracting'];
+  }, [contractors]);
+
   const visibleContractors = useMemo(() => {
-    if (filter === 'All') return contractors;
-    return contractors.filter((item) => item.trade === filter);
-  }, [filter, contractors]);
+    if (selectedTrade === 'All') return contractors;
+    return contractors.filter((c) => c.trade?.toLowerCase() === selectedTrade.toLowerCase());
+  }, [selectedTrade, contractors]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setStatus('');
+    setAiReply('');
+
     try {
-      const response = await fetch('/api/leads', {
+      const fullMessage = selectedContractor 
+        ? `[Request for ${selectedContractor}] ${formData.message}` 
+        : formData.message;
+
+      const response = await fetch('/api/lead-intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: fullMessage
+        })
       });
+
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Unable to submit lead.');
-      setStatus(`Lead captured for ${formData.name}.`);
+      if (!response.ok) throw new Error(result.message || 'Unable to submit service request.');
+
+      setStatus(`Thank you ${formData.name}! Your request has been submitted. A confirmation email has been sent to ${formData.email}.`);
+      if (result.aiReply) setAiReply(result.aiReply);
       setFormData({ name: '', email: '', phone: '', message: '' });
+      setSelectedContractor('');
     } catch (error: any) {
-      setStatus(error.message || 'Submission failed.');
+      setStatus(error.message || 'Submission failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -102,92 +101,161 @@ export default function HomePage() {
     <main>
       <section className="container" style={{ padding: '24px 0 40px' }}>
         {/* Header + Nav */}
-        <div className="panel card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '18px' }}>
+        <div className="panel card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
           <div>
-            <p style={{ color: '#38bdf8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.24em', marginBottom: '6px' }}>LeadFast AI · HVAP Contractor Portal</p>
-            <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Unified contractor workspace</h1>
+            <p style={{ color: '#38bdf8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.24em', marginBottom: '6px' }}>
+              LeadFast AI · Client Directory
+            </p>
+            <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Find & Hire Trusted Local Contractors</h1>
           </div>
           <nav className="nav" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <a href="/" className="active">Overview</a>
-            <a href="/leads">Leads</a>
-            <a href="/contact">LeadFast AI</a>
-            <a href="/login">Login</a>
-            <LogoutButton />
+            <a href="/" className="active">Find Contractors</a>
+            <a href="/contact">Direct Contact</a>
+            <a href="/login" style={{ background: 'linear-gradient(135deg, #2563eb, #38bdf8)', color: 'white', fontWeight: '600', padding: '8px 16px', borderRadius: '999px' }}>
+              Contractor Portal / Login
+            </a>
           </nav>
         </div>
 
-        {/* KPI Metrics */}
-        <div className="grid grid-3" style={{ marginBottom: '18px' }}>
-          <div className="panel card kpi">
-            <div className="label">Qualified Leads</div>
-            <div className="value">{metricsLoading ? '—' : qualifiedLeads ?? '0'}</div>
-          </div>
-          <div className="panel card kpi">
-            <div className="label">Open Jobs</div>
-            <div className="value">{metricsLoading ? '—' : openJobs ?? '0'}</div>
-          </div>
-          <div className="panel card kpi">
-            <div className="label">Registered Businesses</div>
-            <div className="value">{contractorsLoading ? '—' : contractors.length}</div>
-          </div>
-        </div>
-
-        {/* Contractor Roster + Lead Capture */}
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
+          
+          {/* Left Column: Public Directory of Available Contractors */}
           <div className="panel card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h2 style={{ margin: 0 }}>Active contractor roster</h2>
-                  <span className={`badge ${hasSupabaseConfig ? '' : 'warn'}`} style={{ fontSize: '0.75rem', padding: '2px 8px' }}>
-                    {hasSupabaseConfig ? 'Live Database' : 'Sandbox'}
-                  </span>
-                </div>
-                <p style={{ color: '#94a3b8', margin: '4px 0 0' }}>A view of registered partner businesses.</p>
+                <h2 style={{ margin: 0 }}>Available Contractors</h2>
+                <p style={{ color: '#94a3b8', margin: '4px 0 0', fontSize: '0.9rem' }}>
+                  Browse verified contractors and their specialized trades.
+                </p>
               </div>
-              <select aria-label="Filter by trade" value={filter} onChange={(e) => setFilter(e.target.value)}>
-                <option value="All">All trades</option>
-                {trades.map((trade) => (
+              <select
+                aria-label="Filter by trade"
+                value={selectedTrade}
+                onChange={(e) => setSelectedTrade(e.target.value)}
+                style={{ width: 'auto', minWidth: '140px' }}
+              >
+                <option value="All">All Trades</option>
+                {tradesList.map((trade) => (
                   <option key={trade} value={trade}>{trade}</option>
                 ))}
               </select>
             </div>
+
             <div className="grid" style={{ gap: '12px' }}>
               {contractorsLoading ? (
-                <p style={{ color: '#94a3b8' }}>Loading contractors...</p>
+                <p style={{ color: '#94a3b8' }}>Loading directory...</p>
               ) : visibleContractors.length === 0 ? (
-                <p style={{ color: '#94a3b8' }}>No contractors found. Add businesses in your Supabase dashboard.</p>
+                <div style={{ padding: '24px', textAlign: 'center', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                  <p style={{ color: '#94a3b8', margin: 0 }}>No registered contractors listed for this trade yet.</p>
+                  <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
+                    You can still submit a general request below and we will match you with a provider.
+                  </p>
+                </div>
               ) : (
-                visibleContractors.map((contractor) => (
-                  <div key={contractor.id} style={{ border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{contractor.business_name}</div>
-                      <div style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
-                        {contractor.trade || 'General'}
-                        {contractor.contact_email ? ` • ${contractor.contact_email}` : ''}
+                visibleContractors.map((c) => (
+                  <div
+                    key={c.id}
+                    style={{
+                      border: selectedContractor === c.business_name ? '2px solid var(--accent-2)' : '1px solid var(--border)',
+                      borderRadius: '14px',
+                      padding: '16px',
+                      background: 'rgba(30, 41, 59, 0.5)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <div>
+                        <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{c.business_name}</div>
+                        <div style={{ color: '#38bdf8', fontSize: '0.9rem', marginTop: '2px' }}>
+                          🏷️ Trade: <strong>{c.trade || 'General Contracting'}</strong>
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={() => setSelectedContractor(c.business_name)}
+                        style={{
+                          background: selectedContractor === c.business_name ? 'var(--accent-2)' : 'rgba(255,255,255,0.06)',
+                          color: selectedContractor === c.business_name ? '#07111f' : '#f8fafc',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          padding: '6px 14px'
+                        }}
+                      >
+                        {selectedContractor === c.business_name ? '✓ Selected' : 'Request Quote'}
+                      </button>
                     </div>
-                    {contractor.plan && <span className="badge">{contractor.plan}</span>}
                   </div>
                 ))
               )}
             </div>
           </div>
 
+          {/* Right Column: Lead Service Request Form */}
           <div className="panel card">
-            <h2 style={{ marginTop: 0 }}>Lead capture</h2>
-            <p style={{ color: '#94a3b8', marginBottom: '14px' }}>Capture incoming contractor leads directly from this page.</p>
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '12px' }}>
-              <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Full name" />
-              <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="Email" />
-              <input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="Phone" />
-              <textarea rows={4} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Project details" />
-              <button type="submit" className="btn" style={{ background: 'linear-gradient(135deg, #2563eb, #38bdf8)', color: 'white' }} disabled={loading}>
-                {loading ? 'Capturing…' : 'Capture lead'}
+            <h2 style={{ marginTop: 0 }}>Submit Service Request</h2>
+            <p style={{ color: '#94a3b8', marginBottom: '16px', fontSize: '0.9rem' }}>
+              {selectedContractor 
+                ? `Direct request to ${selectedContractor}` 
+                : 'Send your project details to matched contractors. You will receive an instant email confirmation.'}
+            </p>
+
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '14px' }}>
+              {selectedContractor && (
+                <div style={{ padding: '8px 12px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid var(--accent-2)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#38bdf8' }}>
+                    Target Contractor: <strong>{selectedContractor}</strong>
+                  </span>
+                  <button type="button" onClick={() => setSelectedContractor('')} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}>
+                    Clear
+                  </button>
+                </div>
+              )}
+
+              <label style={{ display: 'grid', gap: '4px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Your Full Name *</span>
+                <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="John Smith" />
+              </label>
+
+              <label style={{ display: 'grid', gap: '4px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Email Address *</span>
+                <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="john@example.com" />
+              </label>
+
+              <label style={{ display: 'grid', gap: '4px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Phone Number</span>
+                <input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+1 (555) 000-0000" />
+              </label>
+
+              <label style={{ display: 'grid', gap: '4px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Project Details & Message *</span>
+                <textarea rows={4} required value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Describe what work or repair you need done..." />
+              </label>
+
+              <button
+                type="submit"
+                className="btn"
+                style={{ background: 'linear-gradient(135deg, #2563eb, #38bdf8)', color: 'white', padding: '12px 16px', fontWeight: '600' }}
+                disabled={loading}
+              >
+                {loading ? 'Submitting Request…' : 'Submit Request to Contractors'}
               </button>
-              {status && <p style={{ margin: 0, color: '#86efac' }}>{status}</p>}
+
+              {status && (
+                <div style={{ marginTop: '12px', padding: '12px', borderRadius: '10px', background: status.includes('failed') || status.includes('Unable') ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)', border: `1px solid ${status.includes('failed') || status.includes('Unable') ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)'}` }}>
+                  <p style={{ margin: 0, color: status.includes('failed') || status.includes('Unable') ? '#fca5a5' : '#86efac', fontSize: '0.9rem' }}>{status}</p>
+                </div>
+              )}
+
+              {aiReply && (
+                <div style={{ marginTop: '12px', padding: '14px', borderRadius: '10px', background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}>
+                  <p style={{ color: '#38bdf8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px', marginTop: 0 }}>Instant AI Confirmation Reply</p>
+                  <p style={{ margin: 0, color: '#e2e8f0', whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{aiReply}</p>
+                </div>
+              )}
             </form>
           </div>
+
         </div>
       </section>
     </main>
