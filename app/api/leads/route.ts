@@ -3,6 +3,16 @@ import { checkRateLimit } from "@/lib/rate-limit";
 
 // GET /api/leads - Returns all leads ordered by creation date
 export async function GET() {
+  if (!supabase) {
+    return Response.json(
+      {
+        success: false,
+        error: "Supabase client not configured",
+      },
+      { status: 500 }
+    );
+  }
+
   const { data, error } = await supabase
     .from("leads")
     .select("*")
