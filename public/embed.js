@@ -2,7 +2,7 @@
  * LeadFast AI - Lightweight Form Ingestion Script
  * Integrates into any website builder (Wix, Squarespace, Webflow, Custom HTML, etc.)
  * Intercepts submissions, extracts contact info heuristically, and sends to LeadFast AI API.
- */ 
+ */
 (function () {
     // Prevent double initialization
     if (window.__LeadFastInitialized) return;

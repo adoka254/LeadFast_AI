@@ -99,15 +99,12 @@ console.log("Supabase connection successful:", supabaseData);*/
           {
             role: "user",
             content: `
-You are an AI assistant for LeadFast AI.
+You are writing a fast, friendly, and professional email response on behalf of the service business team.
 
 A customer named ${name} submitted this message:
-
 "${message}"
 
-Write a friendly and professional email thanking them,
-acknowledging their request,
-and letting them know someone will contact them shortly.
+Write a warm, concise, and professional reply thanking them for reaching out, acknowledging their specific request, and letting them know a team member will follow up with them shortly. Do NOT mention that you are an AI, bot, assistant, or automated system. Write naturally as a real team representative.
             `,
           },
         ],
@@ -118,51 +115,43 @@ and letting them know someone will contact them shortly.
         .map((block: any) => block.text)
         .join("\n");
 
-      console.log("Claude generated a reply successfully.");
+      console.log("Reply generated successfully.");
 
     } catch (claudeError) {
-      console.error("Claude failed.");
+      console.error("Reply generation error.");
       console.error(claudeError);
 
-      // Fallback reply (Sprint Task 3)
+      // Fallback reply
       aiReply = `Hello ${name},
 
-Thank you for contacting LeadFast AI.
+Thank you for contacting us.
 
 We have received your message:
-
 "${message}"
 
-Our team will review your request and get back to you shortly.
+Our team is reviewing your request and will get back to you shortly.
 
 Kind regards,
-
-LeadFast AI Team`;
+Service Team`;
     }
 
-    // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: "LeadFast <onboarding@resend.dev>",
-      to: email,
-      subject: "Thank you for contacting LeadFast AI",
-      text: aiReply,
-    });
+    // Send email using Resend (graceful check so email test limits don't crash lead submission)
+    try {
+      const { data, error } = await resend.emails.send({
+        from: "LeadFast <onboarding@resend.dev>",
+        to: email,
+        subject: "Thank you for contacting LeadFast AI",
+        text: aiReply,
+      });
 
-    if (error) {
-      console.error("Resend Error:");
-      console.error(error);
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Failed to send email.",
-          error,
-        },
-        { status: 500 }
-      );
+      if (error) {
+        console.error("Resend Email Warning (Sandbox restriction):", error.message || error);
+      } else {
+        console.log("Email sent successfully.");
+      }
+    } catch (resendErr) {
+      console.error("Resend sending error caught gracefully:", resendErr);
     }
-
-    console.log("Email sent successfully.");
 
     return NextResponse.json({
       success: true,

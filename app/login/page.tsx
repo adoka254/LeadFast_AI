@@ -45,7 +45,7 @@ export default function LoginPage() {
   function handleSelectRole(selectedRole: 'contractor' | 'client') {
     setRole(selectedRole);
     if (selectedRole === 'client') {
-      router.push('/');
+      router.push('/client');
     } else {
       setStep('auth_form');
     }
@@ -135,9 +135,11 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
-      <section className="container" style={{ padding: '40px 0', display: 'flex', justifyContent: 'center' }}>
-        <div className="panel card" style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <section className="container" style={{ padding: '40px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
+        
+        {/* Main Interactive Card: Role Selection / Auth */}
+        <div className="panel card" style={{ width: '100%', maxWidth: '580px', padding: '32px' }}>
           
           {step === 'role_select' ? (
             <div>
@@ -323,7 +325,74 @@ export default function LoginPage() {
           )}
 
         </div>
+
+        {/* Separate Card Field for LeadFast AI Overview & 3 SVG Trade Graphics */}
+        <div className="panel card" style={{ width: '100%', maxWidth: '780px', padding: '32px', background: 'rgba(15, 23, 42, 0.65)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px' }}>
+          <h2 style={{ fontSize: '1.35rem', color: '#f8fafc', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span>⚡</span> About LeadFast AI
+          </h2>
+          <p style={{ color: '#e2e8f0', fontSize: '0.94rem', lineHeight: '1.7', marginBottom: '16px' }}>
+            <strong>LeadFast AI</strong> is an instant lead response system engineered specifically for home service contractors like HVAC technicians, plumbers, and roofers. By intercepting website contact form submissions and generating personalized, context-aware email replies within 30 seconds, LeadFast AI bridges the critical response-time gap when contractors are busy in the field—ensuring no high-intent lead is lost to competitors while logging all interactions into a streamlined business dashboard.
+          </p>
+          <p style={{ color: '#cbd5e1', fontSize: '0.92rem', lineHeight: '1.7', marginBottom: '28px' }}>
+            For clients, this means an end to waiting hours or days for quotes by receiving immediate, intelligent answers tailored to their specific home service needs. For contractors, it provides a 24/7 automated sales assistant that turns website traffic into booked jobs without manual overhead, delivering immediate value to both parties.
+          </p>
+
+          {/* 3 Detailed 3D Rendered Images: Tap, Roof, and Electrical Appliance */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '24px' }}>
+            
+            {/* 3D IMAGE 1: TAP / FAUCET (Plumbing) */}
+            <div style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '16px', padding: '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ width: '130px', height: '130px', borderRadius: '14px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, transparent 70%)' }}>
+                <img src="/images/tap.png" alt="3D Plumbing Tap" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5))' }} />
+              </div>
+              <span style={{ marginTop: '14px', fontWeight: '700', color: '#38bdf8', fontSize: '0.95rem' }}>Plumbing & Taps</span>
+            </div>
+
+            {/* 3D IMAGE 2: ROOF / HOUSE ROOFING (Black & White 3D) */}
+            <div style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))', border: '1px solid rgba(248, 250, 252, 0.25)', borderRadius: '16px', padding: '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ width: '130px', height: '130px', borderRadius: '14px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%)' }}>
+                <img src="/images/roof.png" alt="3D Black and White Roof" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5))' }} />
+              </div>
+              <span style={{ marginTop: '14px', fontWeight: '700', color: '#f8fafc', fontSize: '0.95rem' }}>Roofing & Structure</span>
+            </div>
+
+            {/* 3D IMAGE 3: ELECTRICAL APPLIANCE */}
+            <div style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))', border: '1px solid rgba(74, 222, 128, 0.3)', borderRadius: '16px', padding: '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ width: '130px', height: '130px', borderRadius: '14px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(74, 222, 128, 0.18) 0%, transparent 70%)' }}>
+                <img src="/images/appliance.png" alt="3D Electrical Appliance" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5))' }} />
+              </div>
+              <span style={{ marginTop: '14px', fontWeight: '700', color: '#4ade80', fontSize: '0.95rem' }}>Electrical & Appliances</span>
+            </div>
+
+          </div>
+        </div>
+
       </section>
+
+      {/* Website Owner / Company Footer Details */}
+      <footer style={{ background: '#090d16', borderTop: '1px solid var(--border)', padding: '32px 16px 24px', marginTop: '40px' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '24px' }}>
+            <div>
+              <h3 style={{ margin: '0 0 8px', color: '#f8fafc', fontSize: '1.1rem', fontWeight: '700' }}>LeadFast AI</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0, maxWidth: '320px' }}>
+                Instant AI lead response and scheduling automation system for home service professionals across the US.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gap: '8px', fontSize: '0.88rem', color: '#cbd5e1' }}>
+              <strong style={{ color: '#38bdf8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Company Contact</strong>
+              <div>📞 <strong>Phone:</strong> <a href="tel:+18005550199" style={{ color: '#94a3b8', textDecoration: 'none' }}>+1 (800) 555-0199</a></div>
+              <div>✉️ <strong>Email:</strong> <a href="mailto:support@leadfast.ai" style={{ color: '#94a3b8', textDecoration: 'none' }}>support@leadfast.ai</a></div>
+              <div>📍 <strong>Address:</strong> 100 Enterprise Way, Suite 400, Austin, TX 78701</div>
+            </div>
+          </div>
+          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '16px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', color: '#64748b', fontSize: '0.8rem' }}>
+            <span>© {new Date().getFullYear()} LeadFast AI Technologies Inc. All rights reserved.</span>
+            <span>HVAP Contractor Portal & Client Marketplace</span>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

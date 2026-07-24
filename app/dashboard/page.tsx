@@ -29,6 +29,7 @@ export default function ContractorDashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -96,8 +97,6 @@ export default function ContractorDashboard() {
             </h1>
           </div>
           <nav className="nav" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <a href="/dashboard" className="active">My Dashboard</a>
-            <a href="/contact">Support</a>
             <LogoutButton />
           </nav>
         </div>
@@ -120,6 +119,60 @@ export default function ContractorDashboard() {
               {business?.plan || 'Standard'}
             </div>
           </div>
+        </div>
+
+        {/* Embed Widget Code Snippet Section */}
+        <div className="panel card" style={{ marginBottom: '18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>⚡ Website Embed Code</h2>
+              <p style={{ color: '#94a3b8', margin: '4px 0 0', fontSize: '0.88rem' }}>
+                Copy and paste this script tag into your website (WordPress, Wix, Webflow, or HTML) before the closing <code>&lt;/body&gt;</code> tag to automatically capture leads.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                const businessId = business?.id || 'YOUR_BUSINESS_ID';
+                const snippet = `<script\n  src="${typeof window !== 'undefined' ? window.location.origin : ''}/embed.js"\n  data-business-id="${businessId}"\n  async>\n</script>`;
+                navigator.clipboard.writeText(snippet);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2500);
+              }}
+              style={{
+                background: copied ? '#22c55e' : 'linear-gradient(135deg, #2563eb, #38bdf8)',
+                color: 'white',
+                fontWeight: '600',
+                padding: '8px 16px',
+                fontSize: '0.85rem',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              {copied ? '✓ Copied to Clipboard!' : '📋 Copy Embed Code'}
+            </button>
+          </div>
+
+          <textarea
+            readOnly
+            rows={4}
+            value={`<script\n  src="${typeof window !== 'undefined' ? window.location.origin : ''}/embed.js"\n  data-business-id="${business?.id || 'YOUR_BUSINESS_ID'}"\n  async>\n</script>`}
+            style={{
+              width: '100%',
+              fontFamily: 'monospace',
+              fontSize: '0.88rem',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              background: 'rgba(15, 23, 42, 0.8)',
+              border: '1px solid var(--border)',
+              color: '#38bdf8',
+              resize: 'vertical',
+              outline: 'none'
+            }}
+            onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+          />
         </div>
 
         {/* Contractor's Private Leads View */}

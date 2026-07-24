@@ -11,7 +11,7 @@ async function sendConfirmationEmail(name: string, email: string, message?: stri
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  let emailContent = `Hello ${name},\n\nThank you for reaching out! We have received your request and our team will get back to you shortly.\n\nBest regards,\nLeadFast AI Team`;
+  let emailContent = `Hello ${name},\n\nThank you for reaching out! We have received your request and our team will get back to you shortly.\n\nBest regards,\nCustomer Support Team`;
 
   if (process.env.ANTHROPIC_API_KEY) {
     try {
@@ -22,7 +22,7 @@ async function sendConfirmationEmail(name: string, email: string, message?: stri
         messages: [
           {
             role: "user",
-            content: `You are an AI assistant for LeadFast AI. A customer named ${name} submitted this lead request message: "${message || 'Service enquiry'}". Write a friendly, concise, and professional confirmation email acknowledging their request and letting them know a representative will contact them shortly.`
+            content: `You are writing a confirmation response on behalf of the service business team. A customer named ${name} submitted this lead request message: "${message || 'Service enquiry'}". Write a warm, friendly, concise, and professional confirmation email acknowledging their request and letting them know a team member will contact them shortly. Do NOT mention that you are an AI, bot, or automated system.`
           }
         ]
       });
@@ -34,7 +34,7 @@ async function sendConfirmationEmail(name: string, email: string, message?: stri
 
       if (text) emailContent = text;
     } catch (err) {
-      console.error("AI reply generation failed, using standard template:", err);
+      console.error("Confirmation reply generation failed, using standard template:", err);
     }
   }
 
@@ -42,7 +42,7 @@ async function sendConfirmationEmail(name: string, email: string, message?: stri
     await resend.emails.send({
       from: "LeadFast <onboarding@resend.dev>",
       to: email,
-      subject: "Confirmation: We received your request - LeadFast AI",
+      subject: "Confirmation: We received your request",
       text: emailContent
     });
     console.log(`Confirmation email sent successfully to ${email}`);

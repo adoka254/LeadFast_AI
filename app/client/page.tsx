@@ -104,15 +104,13 @@ export default function ClientMarketplacePage() {
         <div className="panel card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
           <div>
             <p style={{ color: '#38bdf8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.24em', marginBottom: '6px' }}>
-              LeadFast AI · Client Directory
+              Client Portal · LeadFast AI
             </p>
-            <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Find & Hire Trusted Local Contractors</h1>
+            <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Browse Contractors & Submit Requests</h1>
           </div>
           <nav className="nav" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <a href="/" className="active">Find Contractors</a>
-            <a href="/contact">Direct Contact</a>
-            <a href="/login" style={{ background: 'linear-gradient(135deg, #2563eb, #38bdf8)', color: 'white', fontWeight: '600', padding: '8px 16px', borderRadius: '999px' }}>
-              Contractor Portal / Login
+            <a href="/login" style={{ background: 'rgba(255,255,255,0.06)', color: '#f8fafc', fontWeight: '500', padding: '8px 16px', borderRadius: '999px', textDecoration: 'none', border: '1px solid var(--border)' }}>
+              ← Role Selection / Login
             </a>
           </nav>
         </div>
@@ -249,7 +247,7 @@ export default function ClientMarketplacePage() {
 
               {aiReply && (
                 <div style={{ marginTop: '12px', padding: '14px', borderRadius: '10px', background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}>
-                  <p style={{ color: '#38bdf8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px', marginTop: 0 }}>Instant AI Confirmation Reply</p>
+                  <p style={{ color: '#38bdf8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px', marginTop: 0 }}>Confirmation Reply</p>
                   <p style={{ margin: 0, color: '#e2e8f0', whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{aiReply}</p>
                 </div>
               )}
